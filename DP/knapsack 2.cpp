@@ -1,45 +1,45 @@
 #include <bits/stdc++.h>
 
+#define int long long
+#define _ ios_base::sync_with_stdio(0); cin.tie(0);
+#define MAX (int)(105)
+#define MAX_SUM (int)(1e5+10)
+#define INF (int)(1e15+10)
+
 using namespace std;
 
-#define MAXW (int)(1e9+10)
-#define MAXN (int)(1e5+10)
+int n, w, sum=0;
+int valor[MAX], peso[MAX], dp[MAX][MAX_SUM];
 
-int N, W, sum=0;
-int v[110], w[110]; 
-//dp[i][V] menor peso para pegar um valor V usando 1..i itens
-int dp[110][MAXN];
+// encontrar a menor soma de pesos para um item com valor V
+int knapsack(int i, int v){
+    if(v==0) return 0; 
+    if(i>n) return INF;
+    if(dp[i][v] != -1) return dp[i][v];
 
-int main(){
+    int ans = INF;
+    ans = min(ans, knapsack(i+1, v));
+    if(v - valor[i]>=0) {
+        ans = min(ans, peso[i] + knapsack(i+1, v-valor[i]));
+    }
+    
+    return dp[i][v]=ans;
+}
 
-    cin>>N>>W;
+int32_t main(){_ 
 
-    for(int i=1; i<=N; i++){
-        cin>>v[i]>>w[i];
-        sum+= v[i];
+    cin>>n>>w;
+
+    for(int i=1; i<=n; i++){
+        cin>>peso[i]>>valor[i];
+        sum+= valor[i];
     }
 
-    for(int i=0; i<=N; i++){
-        for(int j=1; j<=sum; j++)
-            dp[i][j] = MAXW;
-    }
+    memset(dp, -1, sizeof(dp));
 
-    // caso base dp[i][0] = 0;
-    for(int i=1; i<=N; i++) dp[i][0] = 0;
-
-    for(int i=1; i<=N; i++){
-        for(int valor=1; valor<=sum; valor++){
-            dp[i][valor] = dp[i-1][valor];
-
-            if(v[i]<=valor)
-                dp[i][valor] = min(dp[i][valor], dp[i-1][valor-v[i]] + w[i]);
-                
-        }
-    }
-
-    for(int valor=sum; valor>=1; valor--){
-        if(dp[N][valor]<=W){
-            cout<<valor<<endl;
+    for(int i=sum; i>=0; i--){
+        if(knapsack(1,i) <= w){
+            cout<<i<<endl;
             break;
         }
     }
