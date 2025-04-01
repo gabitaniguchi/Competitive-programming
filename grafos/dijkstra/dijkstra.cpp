@@ -30,7 +30,6 @@ void dijkstra(int origem){
         vis[atual] = 1;
 
         for(auto[next, peso]: grafo[atual]){
-            if(vis[next]) continue;
             //checa se encontrei uma distância menor
             if(dist[next] > dist[atual] + peso){
                 dist[next] = dist[atual] + peso;
