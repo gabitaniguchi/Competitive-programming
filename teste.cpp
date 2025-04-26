@@ -1,33 +1,33 @@
 #include <bits/stdc++.h>
+
 using namespace std;
 
-string s;
+#define MOD (int)(1e9+7)
+#define INF (int)(1e9+10)
 
-vector <int> prefix_function(int ini, int fim){
-    vector<int> pi((int)s.size());
-    for(int i=ini+1, j=0; i<=fim; i++){
-        while(j>0 && s[i]!=s[j+ini]) j = pi[j-1+ini];
-        if(s[i]==s[j+ini]) j++;
-        pi[i] = j;
-    }
-
-    return pi;
-}
+int dp[(int)(1e6+10)];
 
 int main(){
 
-    cin>>s;
+    int n, x;
+    cin>>n>>x;
+    int coin[110];
 
-    int t;
-    cin>>t;
+    for(int i=1; i<=n; i++) {
+        cin>>coin[i];
+    }    
 
-    while(t--){
-        int ini,fim;
-        cin>>ini>>fim;
-        vector<int> pi = prefix_function(ini,fim);
-        for(int i=ini; i<=fim; i++) cout<<pi[i]<<" ";
-        cout<<endl;
+    dp[0] = 1;
+
+    for(int sum=1; sum<=x; sum++){
+        for(int i=1; i<=n; i++){
+            if(sum-coin[i]<0) break;
+            dp[sum] += dp[sum-coin[i]]%MOD;
+            dp[sum]%=MOD;
+        }
     }
+
+    cout<<dp[x]<<endl;
 
     return 0;
 }
