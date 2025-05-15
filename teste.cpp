@@ -1,33 +1,106 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <memory.h>
 
 using namespace std;
 
-#define MOD (int)(1e9+7)
-#define INF (int)(1e9+10)
+struct trie {
+  bool isEnd;
+  trie *next[26];
 
-int dp[(int)(1e6+10)];
+  trie() {
+    isEnd = false;
+    for(int i = 0; i < 26; i++)
+      next[i] = NULL;
+  }
+};
 
-int main(){
+vector<string> words;
+void DFS(trie *cursor, string word) {
+  if(cursor->isEnd) {
+    if(word != "")
+      words.push_back(word);
+  }
 
-    int n, x;
-    cin>>n>>x;
-    int coin[110];
+  for(int i = 0; i < 26; i++)
+    if(cursor->next[i] != NULL)
+      DFS(cursor->next[i], word + char(i + 'a'));
+}
 
-    for(int i=1; i<=n; i++) {
-        cin>>coin[i];
-    }    
+trie *root;
 
-    dp[0] = 1;
+void insert(string s) {
+  trie *cursor = root;
 
-    for(int sum=1; sum<=x; sum++){
-        for(int i=1; i<=n; i++){
-            if(sum-coin[i]<0) break;
-            dp[sum] += dp[sum-coin[i]]%MOD;
-            dp[sum]%=MOD;
-        }
+  int number;
+  for(int i = 0; i < s.length(); i++) {
+    number = s[i] - 'a';
+
+    if(cursor->next[number] == NULL)
+      cursor->next[number] = new trie;
+
+    cursor = cursor->next[number];
+  }
+
+  cursor->isEnd = true;
+}
+
+void freeTrie(trie* cursor) {
+	if(cursor == NULL)
+		return;
+
+	for(int i = 0; i < 26; i++)
+		freeTrie(cursor->next[i]);
+
+	delete[] cursor;
+}
+
+int main() {
+  root = new trie;
+
+  int n;
+  cin >> n;
+
+  string s;
+  while(n--) {
+    cin >> s;
+    insert(s);
+  }
+
+  int m;
+  cin >> m;
+
+  bool pass;
+  for(int c = 1; m--; c++) {
+    pass = true;
+    cout << "Case #" << c << ':' << endl;
+
+    cin >> s;
+    trie *cursor = root;
+
+    for(int i = 0; i < s.length(); i++)
+      if(cursor->next[s[i] - 'a'] != NULL)
+        cursor = cursor->next[s[i] - 'a'];
+      else {
+        pass = false;
+        break;
+      }
+
+    if(cursor == root || !pass) {
+      cout << "No match." << endl;
+      continue;
     }
 
-    cout<<dp[x]<<endl;
+    words.clear();
+    DFS(cursor, "");
 
-    return 0;
+    for(int i = 0; i < words.size(); i++)
+      cout << s << words[i] << endl;
+  }
+
+  freeTrie(root);
+
+  return 0;
 }
