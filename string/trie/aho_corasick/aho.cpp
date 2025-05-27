@@ -6,7 +6,7 @@ using namespace std;
 
 struct Trie{
     int child[k];
-    bool end = false;
+    int end = 0;
     int link = -1;
     int output = -1;
 
@@ -16,30 +16,29 @@ struct Trie{
 };
 
 vector<Trie> trie(1);
-// frequencia de todos os padrões acima de i
-int freqacumulada[MAXN];
 
 void build(){
     queue<int>q;
 
     //define os links e os outputs da camada 1
-    for(auto c: trie[0].child){
-        if(c!=-1) {
-            trie[c].link = 0;
-            trie[c].output = trie[c].end? c : -1;
-            q.push(c);
+    for(int c=0; c<k; c++){
+        int nxt = trie[0].child[c];
+        if(nxt!=-1) {
+            trie[nxt].link = 0;
+            trie[nxt].output = trie[nxt].end? nxt : -1;
+            q.push(nxt);
         }
     }
 
     while(!q.empty()){
-        int atual = q.front();
+        int v = q.front();
         q.pop();
 
         for(int c=0; c<k; c++){
-            int next = trie[atual].child[c];
-            if(next==-1) continue;
+            int nxt = trie[v].child[c];
+            if(nxt==-1) continue;
             
-            int suf_link = trie[atual].link;
+            int suf_link = trie[v].link;
 
             // enquanto não acho um failure link válido, subo na Trie
             while(suf_link!=0 && trie[suf_link].child[c]==-1){
@@ -48,28 +47,24 @@ void build(){
             
             // se achei um sufixo válido, aponto para ele
             if(trie[suf_link].child[c]!=-1) 
-                trie[next].link = trie[suf_link].child[c];
+                trie[nxt].link = trie[suf_link].child[c];
 
             // caso contrário, aponto para a raíz
             else
-                trie[next].link = 0;
+                trie[nxt].link = 0;
 
             // gera o output link
-            int suf_next = trie[next].link;
-            if(trie[suf_next].end) trie[next].output = suf_next;
-            else trie[next].output = trie[suf_next].output;
+            int suf_nxt = trie[nxt].link;
+            // se chego em um final de padrão, tenho um novo output link
+            if(trie[suf_nxt].end) trie[nxt].output = suf_nxt;
+            else trie[nxt].output = trie[suf_nxt].output;
 
-            // Propaga a frequência dos padrões
-            if (trie[next].output != -1) {
-                freqacumulada[next] += freqacumulada[trie[next].output];
-            }
-
-            q.push(next);
+            q.push(nxt);
         }
     }
 }
 
-void insert(string& s){
+void insert(string& s, int idp){
     int v=0;
     for(auto ch: s){
         int c = ch-'a';
@@ -79,48 +74,57 @@ void insert(string& s){
         }
         v = trie[v].child[c];
     }
-    trie[v].end = true;
-    freqacumulada[v]++;
+    trie[v].end = idp;
 }
 
-// retorna o somatório das ocorrências de todos os padrões
-int query(string& s){
-    int v=0, ans=0;
+// retorna a frequência de cada padrão
+vector<int> query(string& s, int p){
+    vector<int> freq(p+5);
+    int v=0;
     for(auto ch: s){
         int c = ch-'a';
 
         // se não há transição direta, segue os failure links
-        while(v!=0 && trie[v].child [c]==-1)
+        while(v!=0 && trie[v].child[c]==-1)
             v = trie[v].link;
 
         if(trie[v].child[c]!=-1)
             v = trie[v].child[c];
 
-        ans += freqacumulada[v];
+        for(int nxt = v; nxt!=-1; nxt=trie[nxt].output){
+            if(trie[nxt].end) freq[trie[nxt].end]++;
+        }
+
     }
 
-    return ans;
+    return freq;
 }
 
 int main(){
 
-    int w, q;
-    cin>>w;
+    int t;
+    cin>>t;
 
-    string s;
+    while(t--){
+        trie.clear();
+        trie.emplace_back();
+        string t,s;
+        cin>>t;
 
-    while(w--){
-        cin>>s;
-        insert(s);
-    }
+        int w;
+        cin>>w;
 
-    build();
+        for(int i=1; i<=w; i++){
+            cin>>s;
+            insert(s, i);
+        }
 
-    cin>>q;
+        build();
 
-    while(q--){
-        cin>>s;
-        cout<<query(s)<<endl;
+        vector<int> freq = query(t, w);
+        for(int i=1; i<=w; i++){
+            cout<<freq[i]<<endl;
+        }
     }
 
     return 0;
